@@ -169,7 +169,7 @@ export default Plugin.define({
       }
     }
 
-    // Register slash command and keymap
+    // Register all commands in a single keymap layer
     context.keymap.layer(() => ({
       mode: "global",
       priority: 10,
@@ -183,15 +183,7 @@ export default Plugin.define({
           palette: true,
           slash: { name: "emoji", aliases: ["em"] },
           run: () => { openConfigDialog() }
-        }
-      ]
-    }))
-
-    // Quick toggle keybinding (no dialog)
-    context.keymap.layer(() => ({
-      mode: "global",
-      priority: 10,
-      commands: [
+        },
         {
           id: "sidebar-emoji-category",
           title: "Cycle Category",
