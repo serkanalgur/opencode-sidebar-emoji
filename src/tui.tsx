@@ -22,14 +22,14 @@ export default Plugin.define({
       initial: { paused: false }
     })
 
-    let currentEmojis: string[] = getRandomEmojis(config().category, config().maxEmojis)
+    let currentEmojis: string[] = getRandomEmojis(config.category, config.maxEmojis)
     let timer: ReturnType<typeof setInterval> | null = null
 
     function startAnimation() {
       if (timer) clearInterval(timer)
-      const interval = getInterval(config().speed, config().customSpeedMs)
+      const interval = getInterval(config.speed, config.customSpeedMs)
       timer = setInterval(() => {
-        if (!pauseState().paused && shouldAnimate(config().schedule)) {
+        if (!pauseState.paused && shouldAnimate(config.schedule)) {
           setAnimState(s => { s.frame++ })
         }
       }, interval)
@@ -42,12 +42,12 @@ export default Plugin.define({
       const setting = await context.ui.dialog.select({
         title: "🎨 Emoji Settings",
         options: [
-          { title: "📂 Category", value: "category", description: `Current: ${config().category}` },
-          { title: "🎬 Animation", value: "animation", description: `Current: ${config().animation}` },
-          { title: "⚡ Speed", value: "speed", description: `Current: ${config().speed}` },
-          { title: "🕐 Schedule", value: "schedule", description: `Current: ${config().schedule}` },
-          { title: "🔢 Max Emojis", value: "maxEmojis", description: `Current: ${config().maxEmojis}` },
-          { title: "⏯️ Toggle", value: "toggle", description: pauseState().paused ? "Resume" : "Pause" },
+          { title: "📂 Category", value: "category", description: `Current: ${config.category}` },
+          { title: "🎬 Animation", value: "animation", description: `Current: ${config.animation}` },
+          { title: "⚡ Speed", value: "speed", description: `Current: ${config.speed}` },
+          { title: "🕐 Schedule", value: "schedule", description: `Current: ${config.schedule}` },
+          { title: "🔢 Max Emojis", value: "maxEmojis", description: `Current: ${config.maxEmojis}` },
+          { title: "⏯️ Toggle", value: "toggle", description: pauseState.paused ? "Resume" : "Pause" },
         ]
       })
 
@@ -58,16 +58,16 @@ export default Plugin.define({
           const categories = getCategoryList()
           const selected = await context.ui.dialog.select({
             title: "Select Emoji Category",
-            current: config().category,
+            current: config.category,
             options: categories.map(cat => ({
               title: cat.charAt(0).toUpperCase() + cat.slice(1),
               value: cat,
-              description: `${config().category === cat ? '(active) ' : ''}${getRandomEmojis(cat, 3).join(' ')}`
+              description: `${config.category === cat ? '(active) ' : ''}${getRandomEmojis(cat, 3).join(' ')}`
             }))
           })
           if (selected) {
             setConfig(c => { c.category = selected })
-            currentEmojis = getRandomEmojis(selected, config().maxEmojis)
+            currentEmojis = getRandomEmojis(selected, config.maxEmojis)
             context.ui.toast.show({ title: "Emoji", message: `Category: ${selected}`, variant: "success" })
           }
           break
@@ -75,11 +75,11 @@ export default Plugin.define({
         case "animation": {
           const selected = await context.ui.dialog.select({
             title: "Select Animation Type",
-            current: config().animation,
+            current: config.animation,
             options: ANIMATION_LIST.map(anim => ({
               title: anim.charAt(0).toUpperCase() + anim.slice(1),
               value: anim,
-              description: config().animation === anim ? '(active)' : ''
+              description: config.animation === anim ? '(active)' : ''
             }))
           })
           if (selected) {
@@ -91,19 +91,19 @@ export default Plugin.define({
         case "speed": {
           const selected = await context.ui.dialog.select({
             title: "Select Animation Speed",
-            current: config().speed,
+            current: config.speed,
             options: [
               { title: "🐌 Slow", value: "slow" as AnimationSpeed, description: "1000ms per frame" },
               { title: "🏃 Medium", value: "medium" as AnimationSpeed, description: "500ms per frame" },
               { title: "⚡ Fast", value: "fast" as AnimationSpeed, description: "250ms per frame" },
-              { title: "🔧 Custom", value: "custom" as AnimationSpeed, description: `Current: ${config().customSpeedMs}ms` },
+              { title: "🔧 Custom", value: "custom" as AnimationSpeed, description: `Current: ${config.customSpeedMs}ms` },
             ]
           })
           if (selected) {
             if (selected === "custom") {
               const msStr = await context.ui.dialog.prompt({
                 title: "Custom Speed (ms)",
-                placeholder: String(config().customSpeedMs),
+                placeholder: String(config.customSpeedMs),
                 description: "Enter milliseconds per frame (100-5000)"
               })
               if (msStr) {
@@ -127,7 +127,7 @@ export default Plugin.define({
         case "schedule": {
           const selected = await context.ui.dialog.select({
             title: "Select Schedule Mode",
-            current: config().schedule,
+            current: config.schedule,
             options: [
               { title: "🔄 Always", value: "always" as ScheduleMode, description: "Animation runs continuously" },
               { title: "🕐 Hourly", value: "hourly" as ScheduleMode, description: "Animation at start of each hour" },
@@ -142,14 +142,14 @@ export default Plugin.define({
         case "maxEmojis": {
           const countStr = await context.ui.dialog.prompt({
             title: "Max Emojis (1-15)",
-            placeholder: String(config().maxEmojis),
+            placeholder: String(config.maxEmojis),
             description: "Number of emojis to display"
           })
           if (countStr) {
             const count = parseInt(countStr, 10)
             if (!isNaN(count) && count >= 1 && count <= 15) {
               setConfig(c => { c.maxEmojis = count })
-              currentEmojis = getRandomEmojis(config().category, count)
+              currentEmojis = getRandomEmojis(config.category, count)
               context.ui.toast.show({ title: "Emoji", message: `Max emojis: ${count}`, variant: "success" })
             } else {
               context.ui.toast.show({ title: "Emoji", message: "Invalid count (1-15)", variant: "error" })
@@ -161,7 +161,7 @@ export default Plugin.define({
           setPauseState(s => { s.paused = !s.paused })
           context.ui.toast.show({
             title: "Emoji",
-            message: pauseState().paused ? "Animation paused" : "Animation resumed",
+            message: pauseState.paused ? "Animation paused" : "Animation resumed",
             variant: "info"
           })
           break
@@ -194,7 +194,7 @@ export default Plugin.define({
               c.category = cycleCategory(c.category)
               currentEmojis = getRandomEmojis(c.category, c.maxEmojis)
             })
-            context.ui.toast.show({ title: "Emoji", message: `Category: ${config().category}`, variant: "info" })
+            context.ui.toast.show({ title: "Emoji", message: `Category: ${config.category}`, variant: "info" })
           }
         },
         {
@@ -205,7 +205,7 @@ export default Plugin.define({
           run: () => {
             setConfig(c => { c.speed = cycleSpeed(c.speed) })
             startAnimation()
-            context.ui.toast.show({ title: "Emoji", message: `Speed: ${config().speed}`, variant: "info" })
+            context.ui.toast.show({ title: "Emoji", message: `Speed: ${config.speed}`, variant: "info" })
           }
         },
         {
@@ -215,7 +215,7 @@ export default Plugin.define({
           bind: "ctrl+shift+a",
           run: () => {
             setConfig(c => { c.animation = cycleAnimation(c.animation) })
-            context.ui.toast.show({ title: "Emoji", message: `Animation: ${config().animation}`, variant: "info" })
+            context.ui.toast.show({ title: "Emoji", message: `Animation: ${config.animation}`, variant: "info" })
           }
         },
         {
@@ -227,7 +227,7 @@ export default Plugin.define({
             setPauseState(s => { s.paused = !s.paused })
             context.ui.toast.show({
               title: "Emoji",
-              message: pauseState().paused ? "Animation paused" : "Animation resumed",
+              message: pauseState.paused ? "Animation paused" : "Animation resumed",
               variant: "info"
             })
           }
@@ -239,8 +239,8 @@ export default Plugin.define({
     context.ui.slot({
       append: "sidebar.footer",
       render: (props) => {
-        const currentFrame = animState().frame
-        const isPaused = pauseState().paused
+        const currentFrame = animState.frame
+        const isPaused = pauseState.paused
         
         if (!config.enabled || isPaused) {
           return (
