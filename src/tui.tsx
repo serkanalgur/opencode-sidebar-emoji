@@ -14,12 +14,12 @@ export default Plugin.define({
     })
 
     // Ephemeral animation state
-    const [frame, setFrame] = context.storage.memory("sidebar-emoji-frame", {
-      initial: 0
+    const [animState, setAnimState] = context.storage.memory<{ frame: number }>("sidebar-emoji-frame", {
+      initial: { frame: 0 }
     })
 
-    const [paused, setPaused] = context.storage.memory("sidebar-emoji-paused", {
-      initial: false
+    const [pauseState, setPauseState] = context.storage.memory<{ paused: boolean }>("sidebar-emoji-paused", {
+      initial: { paused: false }
     })
 
     let currentEmojis: string[] = getRandomEmojis(config().category, config().maxEmojis)
@@ -29,8 +29,8 @@ export default Plugin.define({
       if (timer) clearInterval(timer)
       const interval = getInterval(config().speed, config().customSpeedMs)
       timer = setInterval(() => {
-        if (!paused() && shouldAnimate(config().schedule)) {
-          setFrame(f => f + 1)
+        if (!pauseState().paused && shouldAnimate(config().schedule)) {
+          setAnimState(s => { s.frame++ })
         }
       }, interval)
     }
@@ -47,7 +47,7 @@ export default Plugin.define({
           { title: "⚡ Speed", value: "speed", description: `Current: ${config().speed}` },
           { title: "🕐 Schedule", value: "schedule", description: `Current: ${config().schedule}` },
           { title: "🔢 Max Emojis", value: "maxEmojis", description: `Current: ${config().maxEmojis}` },
-          { title: "⏯️ Toggle", value: "toggle", description: paused() ? "Resume" : "Pause" },
+          { title: "⏯️ Toggle", value: "toggle", description: pauseState().paused ? "Resume" : "Pause" },
         ]
       })
 
@@ -158,10 +158,10 @@ export default Plugin.define({
           break
         }
         case "toggle": {
-          setPaused(p => !p)
+          setPauseState(s => { s.paused = !s.paused })
           context.ui.toast.show({
             title: "Emoji",
-            message: paused() ? "Animation resumed" : "Animation paused",
+            message: pauseState().paused ? "Animation paused" : "Animation resumed",
             variant: "info"
           })
           break
@@ -188,39 +188,67 @@ export default Plugin.define({
     }))
 
     // Quick toggle keybinding (no dialog)
-    context.keymap.layer({
-      "ctrl+shift+e": () => {
-        setConfig(c => {
-          c.category = cycleCategory(c.category)
-          currentEmojis = getRandomEmojis(c.category, c.maxEmojis)
-        })
-        context.ui.toast.show({ title: "Emoji", message: `Category: ${config().category}`, variant: "info" })
-      },
-      "ctrl+shift+s": () => {
-        setConfig(c => { c.speed = cycleSpeed(c.speed) })
-        startAnimation()
-        context.ui.toast.show({ title: "Emoji", message: `Speed: ${config().speed}`, variant: "info" })
-      },
-      "ctrl+shift+a": () => {
-        setConfig(c => { c.animation = cycleAnimation(c.animation) })
-        context.ui.toast.show({ title: "Emoji", message: `Animation: ${config().animation}`, variant: "info" })
-      },
-      "ctrl+shift+d": () => {
-        setPaused(p => !p)
-        context.ui.toast.show({
-          title: "Emoji",
-          message: paused() ? "Animation paused" : "Animation resumed",
-          variant: "info"
-        })
-      }
-    })
+    context.keymap.layer(() => ({
+      mode: "global",
+      priority: 10,
+      commands: [
+        {
+          id: "sidebar-emoji-category",
+          title: "Cycle Category",
+          group: "Sidebar Emoji",
+          bind: "ctrl+shift+e",
+          run: () => {
+            setConfig(c => {
+              c.category = cycleCategory(c.category)
+              currentEmojis = getRandomEmojis(c.category, c.maxEmojis)
+            })
+            context.ui.toast.show({ title: "Emoji", message: `Category: ${config().category}`, variant: "info" })
+          }
+        },
+        {
+          id: "sidebar-emoji-speed",
+          title: "Cycle Speed",
+          group: "Sidebar Emoji",
+          bind: "ctrl+shift+s",
+          run: () => {
+            setConfig(c => { c.speed = cycleSpeed(c.speed) })
+            startAnimation()
+            context.ui.toast.show({ title: "Emoji", message: `Speed: ${config().speed}`, variant: "info" })
+          }
+        },
+        {
+          id: "sidebar-emoji-animation",
+          title: "Cycle Animation",
+          group: "Sidebar Emoji",
+          bind: "ctrl+shift+a",
+          run: () => {
+            setConfig(c => { c.animation = cycleAnimation(c.animation) })
+            context.ui.toast.show({ title: "Emoji", message: `Animation: ${config().animation}`, variant: "info" })
+          }
+        },
+        {
+          id: "sidebar-emoji-toggle",
+          title: "Toggle Pause",
+          group: "Sidebar Emoji",
+          bind: "ctrl+shift+d",
+          run: () => {
+            setPauseState(s => { s.paused = !s.paused })
+            context.ui.toast.show({
+              title: "Emoji",
+              message: pauseState().paused ? "Animation paused" : "Animation resumed",
+              variant: "info"
+            })
+          }
+        }
+      ]
+    }))
 
     // Sidebar footer widget
     context.ui.slot({
       append: "sidebar.footer",
       render: (props) => {
-        const currentFrame = frame()
-        const isPaused = paused()
+        const currentFrame = animState().frame
+        const isPaused = pauseState().paused
         
         if (!config().enabled || isPaused) {
           return (
