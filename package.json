@@ -1,0 +1,31 @@
+{
+  "name": "@serkanalgur/opencode-sidebar-emoji",
+  "version": "1.0.0",
+  "description": "Fun emoji animation widget for OpenCode V2 sidebar",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core",
+    "dev": "bun build ./src/index.ts --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "lint": "eslint src/",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": ["opencode", "plugin", "sidebar", "emoji", "animation", "tui"],
+  "author": "Serkan Algur",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/serkanalgur/opencode-sidebar-emoji.git"
+  },
+  "peerDependencies": {
+    "@opencode/plugin": ">=2.0.0"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "^2.0.12",
+    "typescript": "^5.4.0",
+    "@types/bun": "latest"
+  }
+}
