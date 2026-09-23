@@ -169,71 +169,77 @@ export default Plugin.define({
       }
     }
 
-    // Register all commands in a single keymap layer
-    context.keymap.layer(() => ({
-      mode: "global",
-      priority: 10,
-      commands: [
-        {
-          id: "sidebar-emoji-config",
-          title: "Emoji Settings",
-          description: "Configure sidebar emoji animations",
-          group: "Sidebar Emoji",
-          bind: "ctrl+shift+o",
-          palette: true,
-          slash: { name: "emoji", aliases: ["em"] },
-          run: () => { openConfigDialog() }
-        },
-        {
-          id: "sidebar-emoji-category",
-          title: "Cycle Category",
-          group: "Sidebar Emoji",
-          bind: "ctrl+shift+e",
-          run: () => {
-            setConfig(c => {
-              c.category = cycleCategory(c.category)
-              currentEmojis = getRandomEmojis(c.category, c.maxEmojis)
-            })
-            context.ui.toast.show({ title: "Emoji", message: `Category: ${config.category}`, variant: "info" })
-          }
-        },
-        {
-          id: "sidebar-emoji-speed",
-          title: "Cycle Speed",
-          group: "Sidebar Emoji",
-          bind: "ctrl+shift+s",
-          run: () => {
-            setConfig(c => { c.speed = cycleSpeed(c.speed) })
-            startAnimation()
-            context.ui.toast.show({ title: "Emoji", message: `Speed: ${config.speed}`, variant: "info" })
-          }
-        },
-        {
-          id: "sidebar-emoji-animation",
-          title: "Cycle Animation",
-          group: "Sidebar Emoji",
-          bind: "ctrl+shift+a",
-          run: () => {
-            setConfig(c => { c.animation = cycleAnimation(c.animation) })
-            context.ui.toast.show({ title: "Emoji", message: `Animation: ${config.animation}`, variant: "info" })
-          }
-        },
-        {
-          id: "sidebar-emoji-toggle",
-          title: "Toggle Pause",
-          group: "Sidebar Emoji",
-          bind: "ctrl+shift+d",
-          run: () => {
-            setPauseState(s => { s.paused = !s.paused })
-            context.ui.toast.show({
-              title: "Emoji",
-              message: pauseState.paused ? "Animation paused" : "Animation resumed",
-              variant: "info"
-            })
-          }
-        }
-      ]
-    }))
+    // Register all commands in a single keymap layer via app slot
+    context.ui.slot({
+      append: "app",
+      render: () => {
+        context.keymap.layer(() => ({
+          mode: "global",
+          priority: 10,
+          commands: [
+            {
+              id: "sidebar-emoji-config",
+              title: "Emoji Settings",
+              description: "Configure sidebar emoji animations",
+              group: "Sidebar Emoji",
+              bind: "ctrl+shift+o",
+              palette: true,
+              slash: { name: "emoji", aliases: ["em"] },
+              run: () => { openConfigDialog() }
+            },
+            {
+              id: "sidebar-emoji-category",
+              title: "Cycle Category",
+              group: "Sidebar Emoji",
+              bind: "ctrl+shift+e",
+              run: () => {
+                setConfig(c => {
+                  c.category = cycleCategory(c.category)
+                  currentEmojis = getRandomEmojis(c.category, c.maxEmojis)
+                })
+                context.ui.toast.show({ title: "Emoji", message: `Category: ${config.category}`, variant: "info" })
+              }
+            },
+            {
+              id: "sidebar-emoji-speed",
+              title: "Cycle Speed",
+              group: "Sidebar Emoji",
+              bind: "ctrl+shift+s",
+              run: () => {
+                setConfig(c => { c.speed = cycleSpeed(c.speed) })
+                startAnimation()
+                context.ui.toast.show({ title: "Emoji", message: `Speed: ${config.speed}`, variant: "info" })
+              }
+            },
+            {
+              id: "sidebar-emoji-animation",
+              title: "Cycle Animation",
+              group: "Sidebar Emoji",
+              bind: "ctrl+shift+a",
+              run: () => {
+                setConfig(c => { c.animation = cycleAnimation(c.animation) })
+                context.ui.toast.show({ title: "Emoji", message: `Animation: ${config.animation}`, variant: "info" })
+              }
+            },
+            {
+              id: "sidebar-emoji-toggle",
+              title: "Toggle Pause",
+              group: "Sidebar Emoji",
+              bind: "ctrl+shift+d",
+              run: () => {
+                setPauseState(s => { s.paused = !s.paused })
+                context.ui.toast.show({
+                  title: "Emoji",
+                  message: pauseState.paused ? "Animation paused" : "Animation resumed",
+                  variant: "info"
+                })
+              }
+            }
+          ]
+        }))
+        return null
+      }
+    })
 
     // Sidebar footer widget
     context.ui.slot({
