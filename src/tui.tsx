@@ -242,7 +242,7 @@ export default Plugin.define({
         const currentFrame = animState().frame
         const isPaused = pauseState().paused
         
-        if (!config().enabled || isPaused) {
+        if (!config.enabled || isPaused) {
           return (
             <box padding={1} marginTop={1}>
               <text fg="#666">⏸️ Emoji animations paused</text>
@@ -251,32 +251,23 @@ export default Plugin.define({
         }
 
         const animationFrame: AnimationFrame = generateFrame(
-          config().animation,
+          config.animation,
           currentEmojis,
           currentFrame
         )
 
-        const maxOffset = Math.max(...animationFrame.positions, 0)
-        const rows: string[][] = []
-        
-        for (let y = 0; y <= maxOffset; y++) {
-          const row: string[] = []
-          animationFrame.emojis.forEach((emoji, i) => {
-            row.push(animationFrame.positions[i] === y ? emoji : ' ')
-          })
-          rows.push(row)
-        }
+        // Horizontal rendering: emojis side by side with spacing based on position
+        const displayText = animationFrame.emojis.map((emoji, i) => {
+          const pos = animationFrame.positions[i]
+          const spaces = ' '.repeat(pos)
+          return spaces + emoji
+        }).join(' ')
 
-        let displayText = ''
-        for (let y = maxOffset; y >= 0; y--) {
-          displayText += (rows[y]?.join(' ') || '') + '\n'
-        }
-
-        const status = `${config().category} • ${config().animation} • ${config().speed}`
+        const status = `${config.category} • ${config.animation} • ${config.speed}`
 
         return (
           <box padding={1} marginTop={1}>
-            <text fg="#a78bfa" bold>{displayText}</text>
+            <text fg="#a78bfa">{displayText}</text>
             <text fg="#666" dim>{status}</text>
           </box>
         )
