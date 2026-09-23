@@ -6,7 +6,7 @@ import { cycleCategory, cycleSpeed, cycleSchedule, getConfigDisplay } from "./co
 import { shouldAnimate } from "./scheduler"
 
 export default Plugin.define({
-  id: "sidebar-emoji",
+  id: "sidebar-emoji.cli",
   setup(context) {
     // Persistent config
     const [config, setConfig] = context.storage.store<EmojiConfig>("sidebar-emoji-config", {

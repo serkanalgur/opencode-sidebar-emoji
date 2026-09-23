@@ -4,10 +4,16 @@
   "description": "Fun emoji animation widget for OpenCode V2 sidebar",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./tui": "./dist/tui.js"
+  },
   "files": ["dist"],
   "scripts": {
-    "build": "bun build ./src/index.tsx --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core",
-    "dev": "bun build ./src/index.tsx --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core --watch",
+    "build": "bun run build:server && bun run build:tui",
+    "build:server": "bun build ./src/server.ts --outfile ./dist/index.js --target node",
+    "build:tui": "bun build ./src/tui.tsx --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core",
+    "dev": "bun run build:server && bun run build:tui",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "lint": "eslint src/",
@@ -21,7 +27,10 @@
     "url": "https://github.com/serkanalgur/opencode-sidebar-emoji.git"
   },
   "peerDependencies": {
-    "@opencode/plugin": ">=2.0.0"
+    "@opencode/plugin": ">=2.0.0",
+    "@opentui/core": ">=0.5.8",
+    "@opentui/solid": ">=0.5.8",
+    "solid-js": ">=1.9.0"
   },
   "devDependencies": {
     "@opencode/plugin": "^2.0.12",
