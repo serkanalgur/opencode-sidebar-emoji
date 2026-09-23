@@ -6,8 +6,8 @@
   "types": "dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core",
-    "dev": "bun build ./src/index.ts --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core --watch",
+    "build": "bun build ./src/index.tsx --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core",
+    "dev": "bun build ./src/index.tsx --outdir ./dist --target bun --external @opentui/solid --external solid-js --external @opentui/core --watch",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "lint": "eslint src/",

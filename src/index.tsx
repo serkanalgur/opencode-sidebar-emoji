@@ -1,8 +1,8 @@
 import { Plugin } from "@opencode/plugin/tui"
 import { EmojiConfig, AnimationFrame, DEFAULT_CONFIG } from "./types"
 import { getRandomEmojis } from "./characters"
-import { generateFrame, getInterval } from "./animations"
-import { cycleCategory, cycleSpeed, cycleAnimation } from "./config"
+import { generateFrame, getInterval, cycleAnimation } from "./animations"
+import { cycleCategory, cycleSpeed } from "./config"
 import { shouldAnimate } from "./scheduler"
 
 export default Plugin.define({
