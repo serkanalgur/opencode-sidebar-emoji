@@ -70,16 +70,20 @@ export default Plugin.define({
     function startAnimation() {
       if (timer) clearInterval(timer)
       
-      const animType = String(config.animation)
+      // Read config values directly (unwrap proxy)
+      const animType = config.animation as string
+      const speedVal = config.speed as string
+      const customMs = config.customSpeedMs as number
+      const scheduleVal = config.schedule as string
       
       // Initialize physics if needed
       if (isPhysicsAnimation(animType)) {
         initPhysics()
       }
       
-      const interval = getInterval(config.speed, config.customSpeedMs)
+      const interval = getInterval(speedVal, customMs)
       timer = setInterval(() => {
-        if (!pauseState.paused && shouldAnimate(config.schedule)) {
+        if (!pauseState.paused && shouldAnimate(scheduleVal)) {
           // Step physics for physics-based animations
           if (isPhysicsAnimation(animType) && physicsState) {
             stepPhysics(physicsState, interval)
@@ -102,11 +106,11 @@ export default Plugin.define({
       context.ui.dialog.set({ size: "large", centered: true })
 
       const showMainPanel = () => {
-        const cat = String(config.category || 'animals')
-        const anim = String(config.animation || 'wave')
-        const spd = String(config.speed || 'medium')
-        const sched = String(config.schedule || 'always')
-        const max = String(config.maxEmojis || 8)
+        const cat = config.category as string
+        const anim = config.animation as string
+        const spd = config.speed as string
+        const sched = config.schedule as string
+        const max = String(config.maxEmojis as number)
         const stat = pauseState.paused ? 'Paused' : 'Running'
         
         context.ui.dialog.show(
@@ -132,7 +136,7 @@ export default Plugin.define({
     // Individual setting sub-dialogs
     async function openCategoryDialog() {
       const categories = getCategoryList()
-      const currentCat = String(config.category)
+      const currentCat = config.category as string
       const selected = await context.ui.dialog.select({
         title: "📂 Select Emoji Category",
         current: currentCat,
@@ -151,7 +155,7 @@ export default Plugin.define({
     }
 
     async function openAnimationDialog() {
-      const currentAnim = String(config.animation)
+      const currentAnim = config.animation as string
       const selected = await context.ui.dialog.select({
         title: "🎬 Select Animation Type",
         current: currentAnim,
@@ -166,13 +170,14 @@ export default Plugin.define({
         if (isPhysicsAnimation(selected)) {
           initPhysics()
         }
+        startAnimation() // Restart with new animation type
         context.ui.toast.show({ title: "Emoji", message: `Animation: ${selected}`, variant: "success" })
       }
       openConfigDialog()
     }
 
     async function openSpeedDialog() {
-      const currentSpeed = String(config.speed)
+      const currentSpeed = config.speed as string
       const selected = await context.ui.dialog.select({
         title: "⚡ Select Animation Speed",
         current: currentSpeed,
@@ -180,14 +185,14 @@ export default Plugin.define({
           { title: "🐌 Slow", value: "slow" as AnimationSpeed, description: "1000ms per frame" },
           { title: "🏃 Medium", value: "medium" as AnimationSpeed, description: "500ms per frame" },
           { title: "⚡ Fast", value: "fast" as AnimationSpeed, description: "250ms per frame" },
-          { title: "🔧 Custom", value: "custom" as AnimationSpeed, description: `Current: ${String(config.customSpeedMs)}ms` },
+          { title: "🔧 Custom", value: "custom" as AnimationSpeed, description: `Current: ${config.customSpeedMs as number}ms` },
         ]
       })
       if (selected) {
         if (selected === "custom") {
           const msStr = await context.ui.dialog.prompt({
             title: "Custom Speed (ms)",
-            placeholder: String(config.customSpeedMs),
+            placeholder: config.customSpeedMs as number,
             description: "Enter milliseconds per frame (100-5000)"
           })
           if (msStr) {
@@ -209,7 +214,7 @@ export default Plugin.define({
     }
 
     async function openScheduleDialog() {
-      const currentSchedule = String(config.schedule)
+      const currentSchedule = config.schedule as string
       const selected = await context.ui.dialog.select({
         title: "🕐 Select Schedule Mode",
         current: currentSchedule,
@@ -228,7 +233,7 @@ export default Plugin.define({
     async function openMaxEmojisDialog() {
       const countStr = await context.ui.dialog.prompt({
         title: "🔢 Max Emojis (1-15)",
-        placeholder: String(config.maxEmojis),
+        placeholder: config.maxEmojis as number,
         description: "Number of emojis to display"
       })
       if (countStr) {
@@ -334,7 +339,7 @@ export default Plugin.define({
             )
           }
 
-          const animType = String(config.animation || 'wave')
+          const animType = config.animation as string
           
           const animationFrame: AnimationFrame = generateFrame(
             animType,
@@ -350,7 +355,7 @@ export default Plugin.define({
               const physPositions = getPositions(physicsState)
               const lines: string[] = []
               physPositions
-                .filter(p => Number(p.y) >= 0 && Number(p.y) <= 8 && p.emoji)
+                .filter(p => Number(p.y) >= 0 && Number(p.y) <= 8 && p.emoji && typeof p.emoji === 'string')
                 .forEach(p => {
                   const x = Math.max(0, Math.min(MAX_POS, Math.floor(Number(p.x) || 0)))
                   const spaces = ' '.repeat(x)
@@ -379,9 +384,9 @@ export default Plugin.define({
             displayText = ' '
           }
 
-          const category = String(config.category || 'animals')
-          const animation = String(config.animation || 'wave')
-          const speed = String(config.speed || 'medium')
+          const category = config.category as string
+          const animation = config.animation as string
+          const speed = config.speed as string
           const status = `${category} - ${animation} - ${speed}`
 
           return (
