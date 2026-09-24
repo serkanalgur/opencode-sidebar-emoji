@@ -243,68 +243,17 @@ export default Plugin.define({
           mode: "global",
           priority: 10,
           commands: [
+            // Main config dialog
             {
               id: "sidebar-emoji-config",
               title: "Emoji Settings",
               description: "Configure sidebar emoji animations",
               group: "Sidebar Emoji",
-              bind: "meta+shift+o",
               palette: true,
               slash: { name: "emoji", aliases: ["em"] },
               run: () => { openConfigDialog() }
             },
-            {
-              id: "sidebar-emoji-category",
-              title: "Cycle Category",
-              group: "Sidebar Emoji",
-              bind: "meta+shift+e",
-              run: () => {
-                updateConfig(c => {
-                  c.category = cycleCategory(c.category)
-                  currentEmojis = getRandomEmojis(c.category, c.maxEmojis)
-                })
-                context.ui.toast.show({ title: "Emoji", message: `Category: ${config.category}`, variant: "info" })
-              }
-            },
-            {
-              id: "sidebar-emoji-speed",
-              title: "Cycle Speed",
-              group: "Sidebar Emoji",
-              bind: "meta+shift+s",
-              run: () => {
-                updateConfig(c => { c.speed = cycleSpeed(c.speed) })
-                startAnimation()
-                context.ui.toast.show({ title: "Emoji", message: `Speed: ${config.speed}`, variant: "info" })
-              }
-            },
-            {
-              id: "sidebar-emoji-animation",
-              title: "Cycle Animation",
-              group: "Sidebar Emoji",
-              bind: "meta+shift+a",
-              run: () => {
-                updateConfig(c => { c.animation = cycleAnimation(c.animation) })
-                if (isPhysicsAnimation(config.animation)) {
-                  initPhysics()
-                }
-                context.ui.toast.show({ title: "Emoji", message: `Animation: ${config.animation}`, variant: "info" })
-              }
-            },
-            {
-              id: "sidebar-emoji-toggle",
-              title: "Toggle Pause",
-              group: "Sidebar Emoji",
-              bind: "meta+shift+d",
-              run: () => {
-                setPauseState(s => { s.paused = !s.paused })
-                context.ui.toast.show({
-                  title: "Emoji",
-                  message: pauseState.paused ? "Animation paused" : "Animation resumed",
-                  variant: "info"
-                })
-              }
-            },
-            // Individual setting sub-commands
+            // Individual setting sub-commands (slash only)
             {
               id: "sidebar-emoji-set-category",
               title: "Set Category",
@@ -339,6 +288,20 @@ export default Plugin.define({
               group: "Sidebar Emoji",
               slash: { name: "emoji-max" },
               run: () => { openMaxEmojisDialog() }
+            },
+            {
+              id: "sidebar-emoji-toggle",
+              title: "Toggle Pause",
+              group: "Sidebar Emoji",
+              slash: { name: "emoji-pause" },
+              run: () => {
+                setPauseState(s => { s.paused = !s.paused })
+                context.ui.toast.show({
+                  title: "Emoji",
+                  message: pauseState.paused ? "Animation paused" : "Animation resumed",
+                  variant: "info"
+                })
+              }
             }
           ]
         }))
@@ -350,53 +313,69 @@ export default Plugin.define({
     context.ui.slot({
       append: "sidebar.footer",
       render: (props) => {
-        const currentFrame = animState.frame
-        const isPaused = pauseState.paused
-        
-        if (!config.enabled || isPaused) {
+        try {
+          const currentFrame = animState.frame
+          const isPaused = pauseState.paused
+          
+          if (!config.enabled || isPaused) {
+            return (
+              <box padding={1} marginTop={1}>
+                <text fg="#666">⏸️ Emoji animations paused</text>
+              </box>
+            )
+          }
+
+          const animationFrame: AnimationFrame = generateFrame(
+            config.animation,
+            currentEmojis,
+            currentFrame
+          )
+
+          let displayText = ''
+          
+          try {
+            // Use physics positions for physics-based animations
+            if (isPhysicsAnimation(config.animation) && physicsState) {
+              const physPositions = getPositions(physicsState)
+              const lines: string[] = []
+              physPositions
+                .filter(p => p.y >= 0 && p.y <= 8 && p.emoji)
+                .forEach(p => {
+                  const x = Math.max(0, Math.min(MAX_POS, Math.floor(p.x || 0)))
+                  const spaces = ' '.repeat(x)
+                  lines.push(spaces + String(p.emoji))
+                })
+              displayText = lines.join('\n') || ' '
+            } else {
+              // Horizontal rendering: emojis side by side with spacing based on position
+              const parts: string[] = []
+              animationFrame.emojis.forEach((emoji, i) => {
+                const pos = animationFrame.positions[i] || 0
+                const safePos = Math.max(0, Math.min(MAX_POS, Math.floor(pos)))
+                const spaces = ' '.repeat(safePos)
+                parts.push(spaces + String(emoji || ''))
+              })
+              displayText = parts.join(' ') || ' '
+            }
+          } catch (err) {
+            displayText = ' '
+          }
+
+          const status = `${config.category} • ${config.animation} • ${config.speed}`
+
           return (
             <box padding={1} marginTop={1}>
-              <text fg="#666">⏸️ Emoji animations paused</text>
+              <text fg="#a78bfa">{displayText}</text>
+              <text fg="#666" dim>{status}</text>
+            </box>
+          )
+        } catch (err) {
+          return (
+            <box padding={1} marginTop={1}>
+              <text fg="#666">⏸️ Emoji error</text>
             </box>
           )
         }
-
-        const animationFrame: AnimationFrame = generateFrame(
-          config.animation,
-          currentEmojis,
-          currentFrame
-        )
-
-        let displayText: string
-        
-        // Use physics positions for physics-based animations
-        if (isPhysicsAnimation(config.animation) && physicsState) {
-          const physPositions = getPositions(physicsState)
-          displayText = physPositions
-            .filter(p => p.y >= 0 && p.y <= 8) // Only show visible emojis
-            .map(p => {
-              const x = Math.max(0, Math.min(MAX_POS, Math.floor(p.x)))
-              const spaces = ' '.repeat(x)
-              return spaces + p.emoji
-            })
-            .join(' ')
-        } else {
-          // Horizontal rendering: emojis side by side with spacing based on position
-          displayText = animationFrame.emojis.map((emoji, i) => {
-            const pos = animationFrame.positions[i]
-            const spaces = ' '.repeat(pos)
-            return spaces + emoji
-          }).join(' ')
-        }
-
-        const status = `${config.category} • ${config.animation} • ${config.speed}`
-
-        return (
-          <box padding={1} marginTop={1}>
-            <text fg="#a78bfa">{displayText}</text>
-            <text fg="#666" dim>{status}</text>
-          </box>
-        )
       }
     })
 
