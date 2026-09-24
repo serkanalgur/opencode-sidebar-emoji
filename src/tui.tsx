@@ -351,8 +351,13 @@ export default Plugin.define({
           let displayText = ' '
           
           try {
+            // Cat animations return multi-line ASCII art
+            if (animType === 'cat' || animType === 'cat-run') {
+              const catArt = animationFrame.emojis[0] || ' '
+              displayText = String(catArt)
+            }
             // Use physics positions for physics-based animations
-            if (isPhysicsAnimation(animType) && physicsState) {
+            else if (isPhysicsAnimation(animType) && physicsState) {
               const physPositions = getPositions(physicsState)
               const lines: string[] = []
               physPositions

@@ -26,6 +26,9 @@ export function generateFrame(type: AnimationType, emojis: string[], frame: numb
     // Physics-based (positions will be overridden by physics engine)
     case 'drop': return dropFrame(emojis, frame)
     case 'collision': return collisionFrame(emojis, frame)
+    // Cat sprite animations
+    case 'cat': return catFrame(emojis, frame)
+    case 'cat-run': return catRunFrame(emojis, frame)
     default: return waveFrame(emojis, frame)
   }
 }
@@ -120,9 +123,87 @@ function collisionFrame(emojis: string[], frame: number): AnimationFrame {
   return { emojis, positions: emojis.map(() => 0), offsets: emojis.map(() => 0) }
 }
 
+// Cat sprite animation frames
+// These return multi-line ASCII art as the display text
+const CAT_WALK = [
+  '  /\\_/\\  ',
+  ' ( o.o ) ',
+  '  > ^ <  ',
+  ' /|   |\\',
+  '(_|   |_)',
+]
+
+const CAT_WALK_2 = [
+  '  /\\_/\\  ',
+  ' ( o.o ) ',
+  '  > ^ <  ',
+  ' /|   |\\',
+  '(_|  _| )',
+]
+
+const CAT_WALK_3 = [
+  '  /\\_/\\  ',
+  ' ( o.o ) ',
+  '  > ^ <  ',
+  ' /|   |\\',
+  ' ( _|  |_)',
+]
+
+const CAT_RUN = [
+  '  /\\_/\\  ',
+  ' ( o.o ) ',
+  '  > ^ <  ',
+  ' /||   ||\\',
+  '( |   | )',
+]
+
+const CAT_RUN_2 = [
+  '  /\\_/\\  ',
+  ' ( o.o ) ',
+  '  > ^ <  ',
+  '  ||   || ',
+  ' ( |   | )',
+]
+
+const CAT_RUN_3 = [
+  '  /\\_/\\  ',
+  ' ( o.o ) ',
+  '  > ^ <  ',
+  ' /||   ||\\',
+  '  |     | ',
+]
+
+function catFrame(emojis: string[], frame: number): AnimationFrame {
+  // Cat walk cycles through 3 poses
+  const pose = frame % 3
+  const catFrames = [CAT_WALK, CAT_WALK_2, CAT_WALK_3]
+  const currentPose = catFrames[pose]
+  
+  // Use the cat ASCII art as the "emoji" (multi-line)
+  // Return positions that indicate this is a cat animation
+  return { 
+    emojis: [currentPose.join('\n')], 
+    positions: [0], 
+    offsets: [0] 
+  }
+}
+
+function catRunFrame(emojis: string[], frame: number): AnimationFrame {
+  // Cat run cycles through 3 poses
+  const pose = frame % 3
+  const catFrames = [CAT_RUN, CAT_RUN_2, CAT_RUN_3]
+  const currentPose = catFrames[pose]
+  
+  return { 
+    emojis: [currentPose.join('\n')], 
+    positions: [0], 
+    offsets: [0] 
+  }
+}
+
 export const ANIMATION_LIST: AnimationType[] = [
   'wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit', 'dance', 'float',
-  'drop', 'collision'
+  'drop', 'collision', 'cat', 'cat-run'
 ]
 
 export function cycleAnimation(current: AnimationType): AnimationType {
