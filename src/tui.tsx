@@ -105,13 +105,13 @@ export default Plugin.define({
             <box padding={1}>
               <text fg="#a78bfa" bold>🎨 Emoji Settings</text>
               <text fg="#666">─────────────────────────────────</text>
-              <text fg="white">📂 Category: <text fg="#4ade80">{config.category}</text></text>
-              <text fg="white">🎬 Animation: <text fg="#4ade80">{config.animation}</text></text>
-              <text fg="white">⚡ Speed: <text fg="#4ade80">{config.speed}</text></text>
-              <text fg="white">🕐 Schedule: <text fg="#4ade80">{config.schedule}</text></text>
-              <text fg="white">🔢 Max Emojis: <text fg="#4ade80">{config.maxEmojis}</text></text>
+              <text fg="white">📂 Category: <text fg="#4ade80">{String(config.category)}</text></text>
+              <text fg="white">🎬 Animation: <text fg="#4ade80">{String(config.animation)}</text></text>
+              <text fg="white">⚡ Speed: <text fg="#4ade80">{String(config.speed)}</text></text>
+              <text fg="white">🕐 Schedule: <text fg="#4ade80">{String(config.schedule)}</text></text>
+              <text fg="white">🔢 Max Emojis: <text fg="#4ade80">{String(config.maxEmojis)}</text></text>
               <text fg="white">⏯️ Status: <text fg={pauseState.paused ? "#ef4444" : "#4ade80"}>
-                {pauseState.paused ? "Paused" : "Running"}
+                {String(pauseState.paused ? "Paused" : "Running")}
               </text></text>
               <text fg="#666">─────────────────────────────────</text>
               <text fg="#666">Press Escape to close</text>
