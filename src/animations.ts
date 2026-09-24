@@ -7,7 +7,7 @@ const SPEED_MAP: Record<AnimationSpeed, number> = {
   custom: 0
 }
 
-const MAX_POS = 35 // Fill sidebar width
+export const MAX_POS = 35 // Fill sidebar width
 
 export function getInterval(speed: AnimationSpeed, customMs: number): number {
   return speed === 'custom' ? customMs : SPEED_MAP[speed]
@@ -23,6 +23,9 @@ export function generateFrame(type: AnimationType, emojis: string[], frame: numb
     case 'orbit': return orbitFrame(emojis, frame)
     case 'dance': return danceFrame(emojis, frame)
     case 'float': return floatFrame(emojis, frame)
+    // Physics-based (positions will be overridden by physics engine)
+    case 'drop': return dropFrame(emojis, frame)
+    case 'collision': return collisionFrame(emojis, frame)
     default: return waveFrame(emojis, frame)
   }
 }
@@ -107,7 +110,20 @@ function floatFrame(emojis: string[], frame: number): AnimationFrame {
   return { emojis, positions, offsets: emojis.map(() => 0) }
 }
 
-export const ANIMATION_LIST: AnimationType[] = ['wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit', 'dance', 'float']
+// Placeholder frames for physics-based animations
+// Actual positions come from the physics engine
+function dropFrame(emojis: string[], frame: number): AnimationFrame {
+  return { emojis, positions: emojis.map(() => 0), offsets: emojis.map(() => 0) }
+}
+
+function collisionFrame(emojis: string[], frame: number): AnimationFrame {
+  return { emojis, positions: emojis.map(() => 0), offsets: emojis.map(() => 0) }
+}
+
+export const ANIMATION_LIST: AnimationType[] = [
+  'wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit', 'dance', 'float',
+  'drop', 'collision'
+]
 
 export function cycleAnimation(current: AnimationType): AnimationType {
   const idx = ANIMATION_LIST.indexOf(current)

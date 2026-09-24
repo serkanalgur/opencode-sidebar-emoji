@@ -36,5 +36,8 @@
     "@opencode/plugin": "^2.0.12",
     "typescript": "^5.4.0",
     "@types/bun": "latest"
+  },
+  "dependencies": {
+    "matter-js": "^0.20.0"
   }
 }

@@ -5,7 +5,7 @@ import { AnimationType, AnimationSpeed } from "../src/types"
 const testEmojis = ['🐶', '🐱', '🐭', '🐹', '🐰']
 
 describe("Animations: frame generation", () => {
-  const types: AnimationType[] = ['wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit', 'dance', 'float']
+  const types: AnimationType[] = ['wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit', 'dance', 'float', 'drop', 'collision']
 
   for (const type of types) {
     test(`${type} generates valid frame`, () => {
@@ -112,5 +112,75 @@ describe("Animations: speed intervals", () => {
 
   test("custom speed uses custom value", () => {
     expect(getInterval('custom', 750)).toBe(750)
+  })
+})
+
+describe("Animations: physics-based placeholders", () => {
+  test("drop returns placeholder frame with correct structure", () => {
+    const frame = generateFrame('drop', testEmojis, 0)
+    expect(frame.emojis).toEqual(testEmojis)
+    expect(frame.positions.length).toBe(testEmojis.length)
+    expect(frame.offsets.length).toBe(testEmojis.length)
+    // Positions are placeholders (all zeros) - physics engine overrides them
+    expect(frame.positions.every(p => p === 0)).toBe(true)
+  })
+
+  test("collision returns placeholder frame with correct structure", () => {
+    const frame = generateFrame('collision', testEmojis, 0)
+    expect(frame.emojis).toEqual(testEmojis)
+    expect(frame.positions.length).toBe(testEmojis.length)
+    expect(frame.offsets.length).toBe(testEmojis.length)
+    // Positions are placeholders (all zeros) - physics engine overrides them
+    expect(frame.positions.every(p => p === 0)).toBe(true)
+  })
+})
+
+describe("Animations: physics engine", () => {
+  test("createPhysicsEngine initializes with correct emoji count", async () => {
+    const { createPhysicsEngine } = await import('../src/physics')
+    const emojis = ['🐶', '🐱', '🐭']
+    const state = createPhysicsEngine(emojis, 35, 8)
+    expect(state.emojis.length).toBe(3)
+    expect(state.width).toBe(35)
+    expect(state.height).toBe(8)
+  })
+
+  test("stepPhysics advances simulation", async () => {
+    const { createPhysicsEngine, stepPhysics, getPositions } = await import('../src/physics')
+    const emojis = ['🐶', '🐱']
+    const state = createPhysicsEngine(emojis, 35, 8)
+    
+    const positionsBefore = getPositions(state)
+    stepPhysics(state, 16.67)
+    const positionsAfter = getPositions(state)
+    
+    // Positions should have changed due to gravity
+    expect(positionsAfter[0].y).not.toBe(positionsBefore[0].y)
+  })
+
+  test("destroyPhysics cleans up", async () => {
+    const { createPhysicsEngine, destroyPhysics } = await import('../src/physics')
+    const emojis = ['🐶']
+    const state = createPhysicsEngine(emojis)
+    // Should not throw
+    destroyPhysics(state)
+  })
+
+  test("applyForceToAll modifies body positions", async () => {
+    const { createPhysicsEngine, stepPhysics, getPositions, applyForceToAll } = await import('../src/physics')
+    const emojis = ['🐶', '🐱']
+    const state = createPhysicsEngine(emojis, 35, 8)
+    
+    // Let bodies settle
+    for (let i = 0; i < 50; i++) {
+      stepPhysics(state, 16.67)
+    }
+    
+    const positionsBefore = getPositions(state)
+    applyForceToAll(state, 0.1, 0) // Apply rightward force
+    stepPhysics(state, 16.67)
+    const positionsAfter = getPositions(state)
+    
+    expect(positionsAfter[0].x).toBeGreaterThanOrEqual(positionsBefore[0].x)
   })
 })

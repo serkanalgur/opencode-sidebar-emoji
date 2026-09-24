@@ -1,9 +1,10 @@
 import { Plugin } from "@opencode/plugin/tui"
 import { EmojiConfig, AnimationFrame, DEFAULT_CONFIG, EmojiCategory, AnimationType, AnimationSpeed, ScheduleMode } from "./types"
 import { getRandomEmojis, getCategoryList } from "./characters"
-import { generateFrame, getInterval, cycleAnimation, ANIMATION_LIST } from "./animations"
+import { generateFrame, getInterval, cycleAnimation, ANIMATION_LIST, MAX_POS } from "./animations"
 import { cycleCategory, cycleSpeed, cycleSchedule, getConfigDisplay } from "./config"
 import { shouldAnimate } from "./scheduler"
+import { createPhysicsEngine, stepPhysics, getPositions, destroyPhysics, applyForceToAll, resetPositions, type PhysicsState } from "./physics"
 
 const CONFIG_PATH = `${process.env.HOME}/.config/opencode/sidebar-emoji.json`
 
@@ -47,6 +48,16 @@ export default Plugin.define({
 
     let currentEmojis: string[] = getRandomEmojis(config.category, config.maxEmojis)
     let timer: ReturnType<typeof setInterval> | null = null
+    let physicsState: PhysicsState | null = null
+
+    function initPhysics() {
+      if (physicsState) destroyPhysics(physicsState)
+      physicsState = createPhysicsEngine(currentEmojis, MAX_POS, 8)
+    }
+
+    function isPhysicsAnimation(type: string): boolean {
+      return type === 'drop' || type === 'collision'
+    }
 
     // Helper: save config to file after every change
     function updateConfig(mutator: (c: EmojiConfig) => void) {
@@ -58,9 +69,25 @@ export default Plugin.define({
 
     function startAnimation() {
       if (timer) clearInterval(timer)
+      
+      // Initialize physics if needed
+      if (isPhysicsAnimation(config.animation)) {
+        initPhysics()
+      }
+      
       const interval = getInterval(config.speed, config.customSpeedMs)
       timer = setInterval(() => {
         if (!pauseState.paused && shouldAnimate(config.schedule)) {
+          // Step physics for physics-based animations
+          if (isPhysicsAnimation(config.animation) && physicsState) {
+            stepPhysics(physicsState, interval)
+            
+            // Add random forces for collision animation
+            if (config.animation === 'collision' && animState.frame % 10 === 0) {
+              applyForceToAll(physicsState, (Math.random() - 0.5) * 0.01, -0.005)
+            }
+          }
+          
           setAnimState(s => { s.frame++ })
         }
       }, interval)
@@ -129,6 +156,9 @@ export default Plugin.define({
       })
       if (selected) {
         updateConfig(c => { c.animation = selected })
+        if (isPhysicsAnimation(selected)) {
+          initPhysics()
+        }
         context.ui.toast.show({ title: "Emoji", message: `Animation: ${selected}`, variant: "success" })
       }
       openConfigDialog()
@@ -254,6 +284,9 @@ export default Plugin.define({
               bind: "meta+shift+a",
               run: () => {
                 updateConfig(c => { c.animation = cycleAnimation(c.animation) })
+                if (isPhysicsAnimation(config.animation)) {
+                  initPhysics()
+                }
                 context.ui.toast.show({ title: "Emoji", message: `Animation: ${config.animation}`, variant: "info" })
               }
             },
@@ -334,12 +367,27 @@ export default Plugin.define({
           currentFrame
         )
 
-        // Horizontal rendering: emojis side by side with spacing based on position
-        const displayText = animationFrame.emojis.map((emoji, i) => {
-          const pos = animationFrame.positions[i]
-          const spaces = ' '.repeat(pos)
-          return spaces + emoji
-        }).join(' ')
+        let displayText: string
+        
+        // Use physics positions for physics-based animations
+        if (isPhysicsAnimation(config.animation) && physicsState) {
+          const physPositions = getPositions(physicsState)
+          displayText = physPositions
+            .filter(p => p.y >= 0 && p.y <= 8) // Only show visible emojis
+            .map(p => {
+              const x = Math.max(0, Math.min(MAX_POS, Math.floor(p.x)))
+              const spaces = ' '.repeat(x)
+              return spaces + p.emoji
+            })
+            .join(' ')
+        } else {
+          // Horizontal rendering: emojis side by side with spacing based on position
+          displayText = animationFrame.emojis.map((emoji, i) => {
+            const pos = animationFrame.positions[i]
+            const spaces = ' '.repeat(pos)
+            return spaces + emoji
+          }).join(' ')
+        }
 
         const status = `${config.category} • ${config.animation} • ${config.speed}`
 
@@ -354,6 +402,7 @@ export default Plugin.define({
 
     return () => {
       if (timer) clearInterval(timer)
+      if (physicsState) destroyPhysics(physicsState)
     }
   }
 })
