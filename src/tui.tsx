@@ -70,8 +70,10 @@ export default Plugin.define({
     function startAnimation() {
       if (timer) clearInterval(timer)
       
+      const animType = String(config.animation)
+      
       // Initialize physics if needed
-      if (isPhysicsAnimation(config.animation)) {
+      if (isPhysicsAnimation(animType)) {
         initPhysics()
       }
       
@@ -79,11 +81,11 @@ export default Plugin.define({
       timer = setInterval(() => {
         if (!pauseState.paused && shouldAnimate(config.schedule)) {
           // Step physics for physics-based animations
-          if (isPhysicsAnimation(config.animation) && physicsState) {
+          if (isPhysicsAnimation(animType) && physicsState) {
             stepPhysics(physicsState, interval)
             
             // Add random forces for collision animation
-            if (config.animation === 'collision' && animState.frame % 10 === 0) {
+            if (animType === 'collision' && animState.frame % 10 === 0) {
               applyForceToAll(physicsState, (Math.random() - 0.5) * 0.01, -0.005)
             }
           }
@@ -127,13 +129,14 @@ export default Plugin.define({
     // Individual setting sub-dialogs
     async function openCategoryDialog() {
       const categories = getCategoryList()
+      const currentCat = String(config.category)
       const selected = await context.ui.dialog.select({
         title: "📂 Select Emoji Category",
-        current: config.category,
+        current: currentCat,
         options: categories.map(cat => ({
           title: cat.charAt(0).toUpperCase() + cat.slice(1),
           value: cat,
-          description: `${config.category === cat ? '(active) ' : ''}${getRandomEmojis(cat, 3).join(' ')}`
+          description: `${currentCat === cat ? '(active) ' : ''}${getRandomEmojis(cat, 3).join(' ')}`
         }))
       })
       if (selected) {
@@ -145,13 +148,14 @@ export default Plugin.define({
     }
 
     async function openAnimationDialog() {
+      const currentAnim = String(config.animation)
       const selected = await context.ui.dialog.select({
         title: "🎬 Select Animation Type",
-        current: config.animation,
+        current: currentAnim,
         options: ANIMATION_LIST.map(anim => ({
           title: anim.charAt(0).toUpperCase() + anim.slice(1),
           value: anim,
-          description: config.animation === anim ? '(active)' : ''
+          description: currentAnim === anim ? '(active)' : ''
         }))
       })
       if (selected) {
@@ -165,14 +169,15 @@ export default Plugin.define({
     }
 
     async function openSpeedDialog() {
+      const currentSpeed = String(config.speed)
       const selected = await context.ui.dialog.select({
         title: "⚡ Select Animation Speed",
-        current: config.speed,
+        current: currentSpeed,
         options: [
           { title: "🐌 Slow", value: "slow" as AnimationSpeed, description: "1000ms per frame" },
           { title: "🏃 Medium", value: "medium" as AnimationSpeed, description: "500ms per frame" },
           { title: "⚡ Fast", value: "fast" as AnimationSpeed, description: "250ms per frame" },
-          { title: "🔧 Custom", value: "custom" as AnimationSpeed, description: `Current: ${config.customSpeedMs}ms` },
+          { title: "🔧 Custom", value: "custom" as AnimationSpeed, description: `Current: ${String(config.customSpeedMs)}ms` },
         ]
       })
       if (selected) {
@@ -201,9 +206,10 @@ export default Plugin.define({
     }
 
     async function openScheduleDialog() {
+      const currentSchedule = String(config.schedule)
       const selected = await context.ui.dialog.select({
         title: "🕐 Select Schedule Mode",
-        current: config.schedule,
+        current: currentSchedule,
         options: [
           { title: "🔄 Always", value: "always" as ScheduleMode, description: "Animation runs continuously" },
           { title: "🕐 Hourly", value: "hourly" as ScheduleMode, description: "Animation at start of each hour" },
@@ -317,7 +323,7 @@ export default Plugin.define({
           const currentFrame = animState.frame
           const isPaused = pauseState.paused
           
-          if (!config.enabled || isPaused) {
+          if (!Boolean(config.enabled) || isPaused) {
             return (
               <box padding={1} marginTop={1}>
                 <text fg="#666">⏸️ Emoji animations paused</text>
@@ -361,7 +367,7 @@ export default Plugin.define({
             displayText = ' '
           }
 
-          const status = `${config.category} • ${config.animation} • ${config.speed}`
+          const status = `${String(config.category)} • ${String(config.animation)} • ${String(config.speed)}`
 
           return (
             <box padding={1} marginTop={1}>
