@@ -102,20 +102,23 @@ export default Plugin.define({
       context.ui.dialog.set({ size: "large", centered: true })
 
       const showMainPanel = () => {
+        const cat = String(config.category || 'animals')
+        const anim = String(config.animation || 'wave')
+        const spd = String(config.speed || 'medium')
+        const sched = String(config.schedule || 'always')
+        const max = String(config.maxEmojis || 8)
+        const stat = pauseState.paused ? 'Paused' : 'Running'
+        
         context.ui.dialog.show(
           () => (
             <box padding={1}>
-              <text fg="#a78bfa" bold>🎨 Emoji Settings</text>
-              <text fg="#666">─────────────────────────────────</text>
-              <text fg="white">📂 Category: <text fg="#4ade80">{String(config.category)}</text></text>
-              <text fg="white">🎬 Animation: <text fg="#4ade80">{String(config.animation)}</text></text>
-              <text fg="white">⚡ Speed: <text fg="#4ade80">{String(config.speed)}</text></text>
-              <text fg="white">🕐 Schedule: <text fg="#4ade80">{String(config.schedule)}</text></text>
-              <text fg="white">🔢 Max Emojis: <text fg="#4ade80">{String(config.maxEmojis)}</text></text>
-              <text fg="white">⏯️ Status: <text fg={pauseState.paused ? "#ef4444" : "#4ade80"}>
-                {String(pauseState.paused ? "Paused" : "Running")}
-              </text></text>
-              <text fg="#666">─────────────────────────────────</text>
+              <text fg="#a78bfa">Emoji Settings</text>
+              <text fg="white">Category: {cat}</text>
+              <text fg="white">Animation: {anim}</text>
+              <text fg="white">Speed: {spd}</text>
+              <text fg="white">Schedule: {sched}</text>
+              <text fg="white">Max Emojis: {max}</text>
+              <text fg="white">Status: {stat}</text>
               <text fg="#666">Press Escape to close</text>
             </box>
           ),
@@ -326,7 +329,7 @@ export default Plugin.define({
           if (!Boolean(config.enabled) || isPaused) {
             return (
               <box padding={1} marginTop={1}>
-                <text fg="#666">{'\u23F8\uFE0F Emoji animations paused'}</text>
+                <text fg="#666">Emoji paused</text>
               </box>
             )
           }
@@ -379,18 +382,18 @@ export default Plugin.define({
           const category = String(config.category || 'animals')
           const animation = String(config.animation || 'wave')
           const speed = String(config.speed || 'medium')
-          const status = `${category} \u2022 ${animation} \u2022 ${speed}`
+          const status = `${category} - ${animation} - ${speed}`
 
           return (
             <box padding={1} marginTop={1}>
               <text fg="#a78bfa">{displayText}</text>
-              <text fg="#666" dim>{status}</text>
+              <text fg="#666">{status}</text>
             </box>
           )
         } catch (err) {
           return (
             <box padding={1} marginTop={1}>
-              <text fg="#666">{'\u23F8\uFE0F Emoji error'}</text>
+              <text fg="#666">Emoji error</text>
             </box>
           )
         }
