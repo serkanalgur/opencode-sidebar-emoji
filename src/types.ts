@@ -1,4 +1,4 @@
-export type AnimationType = 'wave' | 'bounce' | 'spin' | 'roll' | 'crawl' | 'orbit'
+export type AnimationType = 'wave' | 'bounce' | 'spin' | 'roll' | 'crawl' | 'orbit' | 'dance' | 'float'
 export type AnimationSpeed = 'slow' | 'medium' | 'fast' | 'custom'
 export type ScheduleMode = 'always' | 'hourly' | 'custom'
 export type EmojiCategory = 'animals' | 'space' | 'food' | 'sports' | 'nature' | 'faces' | 'objects' | 'activities' | 'travel' | 'music'

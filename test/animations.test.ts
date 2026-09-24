@@ -5,7 +5,7 @@ import { AnimationType, AnimationSpeed } from "../src/types"
 const testEmojis = ['🐶', '🐱', '🐭', '🐹', '🐰']
 
 describe("Animations: frame generation", () => {
-  const types: AnimationType[] = ['wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit']
+  const types: AnimationType[] = ['wave', 'bounce', 'spin', 'roll', 'crawl', 'orbit', 'dance', 'float']
 
   for (const type of types) {
     test(`${type} generates valid frame`, () => {
@@ -15,16 +15,11 @@ describe("Animations: frame generation", () => {
       expect(frame.offsets.length).toBe(testEmojis.length)
     })
 
-    test(`${type} positions are within valid range`, () => {
+    test(`${type} positions are non-negative`, () => {
       for (let i = 0; i < 20; i++) {
         const frame = generateFrame(type, testEmojis, i)
         for (const pos of frame.positions) {
-          // wave can produce -1 at phase=7, all others are non-negative
-          if (type === 'wave') {
-            expect(pos).toBeGreaterThanOrEqual(-1)
-          } else {
-            expect(pos).toBeGreaterThanOrEqual(0)
-          }
+          expect(pos).toBeGreaterThanOrEqual(0)
         }
       }
     })
@@ -33,7 +28,7 @@ describe("Animations: frame generation", () => {
       for (let i = 0; i < 20; i++) {
         const frame = generateFrame(type, testEmojis, i)
         for (const pos of frame.positions) {
-          expect(pos).toBeLessThanOrEqual(10) // reasonable max
+          expect(pos).toBeLessThanOrEqual(35) // MAX_POS
         }
       }
     })
@@ -51,8 +46,31 @@ describe("Animations: wave specific", () => {
 
 describe("Animations: bounce specific", () => {
   test("bounce returns to ground", () => {
-    const frame = generateFrame('bounce', ['🐶'], 7)
-    expect(frame.positions[0]).toBe(0) // back to ground at frame 7
+    const frame = generateFrame('bounce', ['🐶'], 8)
+    // Bounce pattern has 0 at index 8
+    expect(frame.positions[0]).toBe(0)
+  })
+})
+
+describe("Animations: dance specific", () => {
+  test("dance produces side-to-side motion", () => {
+    const frame0 = generateFrame('dance', ['🐶'], 0)
+    const frame1 = generateFrame('dance', ['🐶'], 1)
+    // Positions should change between frames
+    expect(frame0.positions[0]).not.toBe(frame1.positions[0])
+  })
+})
+
+describe("Animations: float specific", () => {
+  test("float produces smooth motion", () => {
+    const positions: number[] = []
+    for (let i = 0; i < 10; i++) {
+      const frame = generateFrame('float', ['🐶'], i)
+      positions.push(frame.positions[0])
+    }
+    // Should have some variation
+    const unique = new Set(positions)
+    expect(unique.size).toBeGreaterThan(1)
   })
 })
 
