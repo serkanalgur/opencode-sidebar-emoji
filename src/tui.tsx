@@ -170,7 +170,8 @@ export default Plugin.define({
         if (isPhysicsAnimation(selected)) {
           initPhysics()
         }
-        startAnimation() // Restart with new animation type
+        // Restart animation after config update
+        setTimeout(() => startAnimation(), 50)
         context.ui.toast.show({ title: "Emoji", message: `Animation: ${selected}`, variant: "success" })
       }
       openConfigDialog()
@@ -208,7 +209,7 @@ export default Plugin.define({
           updateConfig(c => { c.speed = selected })
           context.ui.toast.show({ title: "Emoji", message: `Speed: ${selected}`, variant: "success" })
         }
-        startAnimation()
+        setTimeout(() => startAnimation(), 50)
       }
       openConfigDialog()
     }
