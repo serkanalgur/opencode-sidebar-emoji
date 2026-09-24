@@ -320,34 +320,36 @@ export default Plugin.define({
       append: "sidebar.footer",
       render: (props) => {
         try {
-          const currentFrame = animState.frame
-          const isPaused = pauseState.paused
+          const currentFrame = Number(animState.frame) || 0
+          const isPaused = Boolean(pauseState.paused)
           
           if (!Boolean(config.enabled) || isPaused) {
             return (
               <box padding={1} marginTop={1}>
-                <text fg="#666">⏸️ Emoji animations paused</text>
+                <text fg="#666">{'\u23F8\uFE0F Emoji animations paused'}</text>
               </box>
             )
           }
 
+          const animType = String(config.animation || 'wave')
+          
           const animationFrame: AnimationFrame = generateFrame(
-            config.animation,
+            animType,
             currentEmojis,
             currentFrame
           )
 
-          let displayText = ''
+          let displayText = ' '
           
           try {
             // Use physics positions for physics-based animations
-            if (isPhysicsAnimation(config.animation) && physicsState) {
+            if (isPhysicsAnimation(animType) && physicsState) {
               const physPositions = getPositions(physicsState)
               const lines: string[] = []
               physPositions
-                .filter(p => p.y >= 0 && p.y <= 8 && p.emoji)
+                .filter(p => Number(p.y) >= 0 && Number(p.y) <= 8 && p.emoji)
                 .forEach(p => {
-                  const x = Math.max(0, Math.min(MAX_POS, Math.floor(p.x || 0)))
+                  const x = Math.max(0, Math.min(MAX_POS, Math.floor(Number(p.x) || 0)))
                   const spaces = ' '.repeat(x)
                   lines.push(spaces + String(p.emoji))
                 })
@@ -355,8 +357,10 @@ export default Plugin.define({
             } else {
               // Horizontal rendering: emojis side by side with spacing based on position
               const parts: string[] = []
-              animationFrame.emojis.forEach((emoji, i) => {
-                const pos = animationFrame.positions[i] || 0
+              const emojis = animationFrame.emojis || []
+              const positions = animationFrame.positions || []
+              emojis.forEach((emoji, i) => {
+                const pos = Number(positions[i]) || 0
                 const safePos = Math.max(0, Math.min(MAX_POS, Math.floor(pos)))
                 const spaces = ' '.repeat(safePos)
                 parts.push(spaces + String(emoji || ''))
@@ -367,7 +371,15 @@ export default Plugin.define({
             displayText = ' '
           }
 
-          const status = `${String(config.category)} • ${String(config.animation)} • ${String(config.speed)}`
+          // Ensure displayText is always a string
+          if (typeof displayText !== 'string') {
+            displayText = ' '
+          }
+
+          const category = String(config.category || 'animals')
+          const animation = String(config.animation || 'wave')
+          const speed = String(config.speed || 'medium')
+          const status = `${category} \u2022 ${animation} \u2022 ${speed}`
 
           return (
             <box padding={1} marginTop={1}>
@@ -378,7 +390,7 @@ export default Plugin.define({
         } catch (err) {
           return (
             <box padding={1} marginTop={1}>
-              <text fg="#666">⏸️ Emoji error</text>
+              <text fg="#666">{'\u23F8\uFE0F Emoji error'}</text>
             </box>
           )
         }
