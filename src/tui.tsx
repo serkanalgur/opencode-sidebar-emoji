@@ -46,13 +46,15 @@ export default Plugin.define({
       initial: { paused: false }
     })
 
-    let currentEmojis: string[] = getRandomEmojis(config.category, config.maxEmojis)
+    let currentEmojis: string[] = getRandomEmojis(config.category, config.maxEmojis as number)
     let timer: ReturnType<typeof setInterval> | null = null
     let physicsState: PhysicsState | null = null
 
     function initPhysics() {
       if (physicsState) destroyPhysics(physicsState)
-      physicsState = createPhysicsEngine(currentEmojis, MAX_POS, 8)
+      // Ensure we have emojis to work with
+      const emojis = currentEmojis.length > 0 ? currentEmojis : ['🐱', '🐶', '🐭']
+      physicsState = createPhysicsEngine(emojis, MAX_POS, 8)
     }
 
     function isPhysicsAnimation(type: string): boolean {
@@ -234,7 +236,7 @@ export default Plugin.define({
     async function openMaxEmojisDialog() {
       const countStr = await context.ui.dialog.prompt({
         title: "🔢 Max Emojis (1-15)",
-        placeholder: config.maxEmojis as number,
+        placeholder: String(config.maxEmojis as number),
         description: "Number of emojis to display"
       })
       if (countStr) {
@@ -351,10 +353,10 @@ export default Plugin.define({
           let displayText = ' '
           
           try {
-            // Cat animations return multi-line ASCII art
+            // Cat animations - try to use image component
             if (animType === 'cat' || animType === 'cat-run') {
-              const catArt = animationFrame.emojis[0] || ' '
-              displayText = String(catArt)
+              // Return special marker for cat animation
+              displayText = 'CAT_ANIMATION'
             }
             // Use physics positions for physics-based animations
             else if (isPhysicsAnimation(animType) && physicsState) {
@@ -394,6 +396,17 @@ export default Plugin.define({
           const animation = config.animation as string
           const speed = config.speed as string
           const status = `${category} - ${animation} - ${speed}`
+
+          // Cat animations - use image component
+          if (displayText === 'CAT_ANIMATION') {
+            const gifPath = `${process.env.HOME}/Downloads/cat sprite/catwalkx4.gif`
+            return (
+              <box padding={1} marginTop={1}>
+                <image src={gifPath} width={20} height={10} />
+                <text fg="#666">{status}</text>
+              </box>
+            )
+          }
 
           return (
             <box padding={1} marginTop={1}>
