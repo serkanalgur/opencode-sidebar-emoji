@@ -353,23 +353,23 @@ export default Plugin.define({
           let displayText = ' '
           
           try {
-            // Cat animations - try to use image component
+            // Cat animations - use ASCII art frames
             if (animType === 'cat' || animType === 'cat-run') {
-              // Return special marker for cat animation
-              displayText = 'CAT_ANIMATION'
+              const catArt = animationFrame.emojis[0] || ' '
+              displayText = String(catArt)
             }
             // Use physics positions for physics-based animations
             else if (isPhysicsAnimation(animType) && physicsState) {
               const physPositions = getPositions(physicsState)
-              const lines: string[] = []
+              const parts: string[] = []
               physPositions
                 .filter(p => Number(p.y) >= 0 && Number(p.y) <= 8 && p.emoji && typeof p.emoji === 'string')
                 .forEach(p => {
                   const x = Math.max(0, Math.min(MAX_POS, Math.floor(Number(p.x) || 0)))
                   const spaces = ' '.repeat(x)
-                  lines.push(spaces + String(p.emoji))
+                  parts.push(spaces + String(p.emoji))
                 })
-              displayText = lines.join('\n') || ' '
+              displayText = parts.join(' ') || ' '
             } else {
               // Horizontal rendering: emojis side by side with spacing based on position
               const parts: string[] = []
@@ -397,15 +397,10 @@ export default Plugin.define({
           const speed = config.speed as string
           const status = `${category} - ${animation} - ${speed}`
 
-          // Cat animations - use image component
+          // Cat animations - render ASCII art
           if (displayText === 'CAT_ANIMATION') {
-            const gifPath = `${process.env.HOME}/Downloads/cat sprite/catwalkx4.gif`
-            return (
-              <box padding={1} marginTop={1}>
-                <image src={gifPath} width={20} height={10} />
-                <text fg="#666">{status}</text>
-              </box>
-            )
+            // This shouldn't happen now, but just in case
+            displayText = 'Cat'
           }
 
           return (

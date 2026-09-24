@@ -124,53 +124,41 @@ function collisionFrame(emojis: string[], frame: number): AnimationFrame {
 }
 
 // Cat sprite animation frames
-// These return multi-line ASCII art as the display text
+// These return single-line representations for TUI display
 const CAT_WALK = [
-  '  /\\_/\\  ',
-  ' ( o.o ) ',
-  '  > ^ <  ',
-  ' /|   |\\',
-  '(_|   |_)',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
 ]
 
 const CAT_WALK_2 = [
-  '  /\\_/\\  ',
-  ' ( o.o ) ',
-  '  > ^ <  ',
-  ' /|   |\\',
-  '(_|  _| )',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
 ]
 
 const CAT_WALK_3 = [
-  '  /\\_/\\  ',
-  ' ( o.o ) ',
-  '  > ^ <  ',
-  ' /|   |\\',
-  ' ( _|  |_)',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
 ]
 
 const CAT_RUN = [
-  '  /\\_/\\  ',
-  ' ( o.o ) ',
-  '  > ^ <  ',
-  ' /||   ||\\',
-  '( |   | )',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
 ]
 
 const CAT_RUN_2 = [
-  '  /\\_/\\  ',
-  ' ( o.o ) ',
-  '  > ^ <  ',
-  '  ||   || ',
-  ' ( |   | )',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
 ]
 
 const CAT_RUN_3 = [
-  '  /\\_/\\  ',
-  ' ( o.o ) ',
-  '  > ^ <  ',
-  ' /||   ||\\',
-  '  |     | ',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
+  '/\\_/\\ (o.o) >^<',
 ]
 
 function catFrame(emojis: string[], frame: number): AnimationFrame {
@@ -179,10 +167,9 @@ function catFrame(emojis: string[], frame: number): AnimationFrame {
   const catFrames = [CAT_WALK, CAT_WALK_2, CAT_WALK_3]
   const currentPose = catFrames[pose]
   
-  // Use the cat ASCII art as the "emoji" (multi-line)
-  // Return positions that indicate this is a cat animation
+  // Use the cat ASCII art as the "emoji"
   return { 
-    emojis: [currentPose.join('\n')], 
+    emojis: [currentPose[0]], 
     positions: [0], 
     offsets: [0] 
   }
@@ -195,7 +182,7 @@ function catRunFrame(emojis: string[], frame: number): AnimationFrame {
   const currentPose = catFrames[pose]
   
   return { 
-    emojis: [currentPose.join('\n')], 
+    emojis: [currentPose[0]], 
     positions: [0], 
     offsets: [0] 
   }
